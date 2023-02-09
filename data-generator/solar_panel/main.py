@@ -13,7 +13,7 @@ print("Start Process")
 while connecting:
     try:
         print("Start producer Connection")
-        producer = KafkaProducer(bootstrap_servers=['kafka:29092'],value_serializer=lambda x: dumps(x).encode('utf-8'))
+        producer = KafkaProducer(bootstrap_servers=['kafka0:29092'],value_serializer=lambda x: dumps(x).encode('utf-8'))
         print("Connection realised")
         connecting=False
     except Exception as e: 
@@ -106,7 +106,9 @@ def senddata(maxpow):
 
     print("Start sending device {} data".format(data["Panel_id"]))
     
-    producer.send(topic=topic_id, value=data)
+    key = str(data["Panel_id"]).encode('utf-8')
+
+    producer.send(topic=topic_id, value=data, key=key)
 
     producer.flush()
 

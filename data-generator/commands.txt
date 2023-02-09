@@ -4,7 +4,7 @@ docker run -v /var/run/docker.sock:/var/run/docker.sock -it solar_main bash
 
 
     
-python3 main.py --topcontainers 3 \
+python3 main.py --topcontainers 5 \
                 --elapsedtime 2 \
                 --image solar_gen_premise \
                 --project_id deft-epigram-375817 \

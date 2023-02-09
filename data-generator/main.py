@@ -17,7 +17,7 @@ print("Start Process")
 while connecting:
     try:
         print("Start producer Connection")
-        producer = KafkaProducer(bootstrap_servers=['kafka:29092'],value_serializer=lambda x: dumps(x).encode('utf-8'))
+        producer = KafkaProducer(bootstrap_servers=['kafka0:29092'],value_serializer=lambda x: dumps(x).encode('utf-8'))
         print("Connection realised")
         connecting=False
     except Exception as e: 
@@ -99,6 +99,12 @@ def main():
    containername = os.environ['IMAGE']
    topicname = os.environ['TOPIC']
 
+   # topcontainers = 5
+   # elapsedtime = 5
+   # containername="solar_gen_premise"
+   # topicname = "panelInfo"
+   # # time_ini = ""
+
    print(f"Top Containers: {topcontainers}")
    print(f"Elapsed Time: {elapsedtime}")
    print(f"Container name: {containername}")
@@ -139,8 +145,12 @@ while True:
 
 
       print("Start sending device {} data".format(i))
-      
-      producer.send(topic=topicname, value=data)
+
+
+      key = str(i).encode('utf-8')
+      producer.send(topic=topicname, value=data, key=key)
+
+      # producer.send(topic=topicname, value=data, key=str(i))
 
       producer.flush()
 
@@ -165,6 +175,7 @@ while True:
    time.sleep(2)
 
    probab = int(os.environ['PROBABILIDAD'])
+
 
    for item in containers:
       prob=random.randint(0, 100/probab)

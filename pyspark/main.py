@@ -62,7 +62,7 @@ def main():
 
     # Connecting to kafta to pull messages from the topic panelInfo
     stream_detail_df = spark.readStream.format("kafka")\
-                     .option("kafka.bootstrap.servers", "kafka:29092")\
+                     .option("kafka.bootstrap.servers", "kafka0:29092")\
                      .option("subscribe", "panelInfo")\
                      .option("startingOffsets", "earliest")\
                      .load() \
