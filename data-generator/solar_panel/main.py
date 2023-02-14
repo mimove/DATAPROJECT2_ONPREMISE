@@ -10,6 +10,7 @@ from json import dumps
 from datetime import timedelta
 
 
+
 brokers = ["kafka0:29092", "kafka1:29093"]
 # brokers = ["localhost:9092", "localhost:9093"]
 
@@ -63,7 +64,7 @@ def generatedata(maxpow):
     ######################
     #INTERVAL OF N HOURS
 
-    delta_hour = 4
+    delta_hour = 1
     
     #######################
     # INTERVAL OF N MINUTES FOR TESTING PURPOUSES
@@ -78,7 +79,7 @@ def generatedata(maxpow):
     mean_time = (initial_time + final_time) / 2
     #######################
 
-    time_now= datetime.datetime.now()-timedelta(minutes=0)
+    time_now= datetime.datetime.now()-timedelta(minutes=0)+timedelta(hours=1)
 
 
    #  current_minute_seconds = time_now.minute * 60 + time_now.second
@@ -89,7 +90,7 @@ def generatedata(maxpow):
 
     # power_panel = maxpow/(np.cosh((current_minute_seconds-initial_time)*(4/(mean_time-initial_time))-4)**(0.8))*random.uniform(0.98, 1)
 
-    power_panel = maxpow/(np.cosh((current_time_seconds-initial_time)*((delta_hour)*0.5/(mean_time-initial_time))-(delta_hour)*0.5)**((delta_hour)/2))
+    power_panel = maxpow/(np.cosh((current_time_seconds-initial_time)*((delta_hour)*0.5/(mean_time-initial_time))-(delta_hour)*0.5)**(30))
 
     data["Panel_id"]=user_id
 
@@ -101,7 +102,9 @@ def generatedata(maxpow):
 
     data["time_data"] = str(time_now)
 
+    
     print(data)
+   #  print(time_now)
 
     return data
 
@@ -111,6 +114,7 @@ def senddata(maxpow):
     # Utiliza la variable topic id para especificar el topico destino
     
     data = generatedata(maxpow)
+   #  print(time_ini)
 
     print("Start sending device {} data".format(data["Panel_id"]))
     
@@ -122,7 +126,7 @@ def senddata(maxpow):
 
     print("Message for device {} Sent".format(data["Panel_id"]))
 
-   #  print(data)
+    print(data)
 
 
 
