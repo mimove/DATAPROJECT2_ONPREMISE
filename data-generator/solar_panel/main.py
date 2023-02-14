@@ -7,20 +7,31 @@ import random
 
 from kafka import KafkaProducer
 from json import dumps
+from datetime import timedelta
+
+
+brokers = ["kafka0:29092", "kafka1:29093"]
+# brokers = ["localhost:9092", "localhost:9093"]
+
+
 
 connecting=True
 print("Start Process")
 while connecting:
-    try:
-        print("Start producer Connection")
-        producer = KafkaProducer(bootstrap_servers=['kafka0:29092'],value_serializer=lambda x: dumps(x).encode('utf-8'))
-        print("Connection realised")
-        connecting=False
-    except Exception as e: 
-        print(e)
-        print("Broker not connected: {}".format(e))
-        connecting=True
-        time.sleep(5)
+   for broker in brokers:
+      try:
+         print("Start producer Connection")
+         producer = KafkaProducer(bootstrap_servers=[broker],value_serializer=lambda x: dumps(x).encode('utf-8'))
+         if producer.bootstrap_connected():
+            print("Conectado al broker: {}".format(broker))
+         connecting=False
+      except Exception as e: 
+         print(e)
+         print("Brokers {} not found: {}".format(broker,e))
+         connecting=True
+         time.sleep(5)
+
+
 
 
 user_id=os.getenv('USER_ID')
@@ -49,39 +60,36 @@ def generatedata(maxpow):
     min2sec = 60
 
 
-    #######################
-    # INTERVAL OF 8 HOURS
+    ######################
+    #INTERVAL OF N HOURS
 
-    # initial_time = 13*h2sec
-
-    # final_time = 21*h2sec
+    delta_hour = 4
+    
     #######################
-
-    #######################
-    # INTERVAL OF 8 MINUTES FOR TESTING PURPOUSES
+    # INTERVAL OF N MINUTES FOR TESTING PURPOUSES
     #######################
 
-    delta_min = 16
+    delta_min = 0
 
-    initial_time = time_ini.minute * min2sec
+    initial_time = time_ini.hour * h2sec + time_ini.minute * min2sec
 
-    final_time = (time_ini.minute + delta_min) * min2sec
+    final_time = (time_ini.hour + delta_hour) * h2sec + (time_ini.minute + delta_min) * min2sec
 
-    mean_time = (initial_time+final_time) / 2
+    mean_time = (initial_time + final_time) / 2
     #######################
 
-    time_now= datetime.datetime.now() 
+    time_now= datetime.datetime.now()-timedelta(minutes=0)
 
-    current_minute_seconds = time_now.minute * 60 + time_now.second
 
-    current_time_seconds = time_now.hour * 3600 + time_now.minute * 60 + time_now.second
+   #  current_minute_seconds = time_now.minute * 60 + time_now.second
+
+    current_time_seconds = time_now.hour * h2sec + time_now.minute * min2sec + time_now.second
 
 
 
     # power_panel = maxpow/(np.cosh((current_minute_seconds-initial_time)*(4/(mean_time-initial_time))-4)**(0.8))*random.uniform(0.98, 1)
 
-    
-    power_panel = maxpow/(np.cosh((current_minute_seconds-initial_time)*(delta_min*0.5/(mean_time-initial_time))-delta_min*0.5)**(0.8*(0.8/(delta_min/10))))
+    power_panel = maxpow/(np.cosh((current_time_seconds-initial_time)*((delta_hour)*0.5/(mean_time-initial_time))-(delta_hour)*0.5)**((delta_hour)/2))
 
     data["Panel_id"]=user_id
 
@@ -114,7 +122,7 @@ def senddata(maxpow):
 
     print("Message for device {} Sent".format(data["Panel_id"]))
 
-    # print(data)
+   #  print(data)
 
 
 

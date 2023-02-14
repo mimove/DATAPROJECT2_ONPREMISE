@@ -21,9 +21,9 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka0:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
       KAFKA_CREATE_TOPICS: "topic_test:1:1"
-      KAFKA_NUM_PARTITIONS: ${CONTAINERS}
+      KAFKA_NUM_PARTITIONS: 1
     env_file:
       - .env 
 
@@ -36,16 +36,19 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - 9093:9092
+      - 9093:9093
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:29092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:29093,PLAINTEXT_HOST://localhost:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
       KAFKA_CREATE_TOPICS: "topic_test:1:1"
-      KAFKA_NUM_PARTITIONS: ${CONTAINERS}
+      KAFKA_NUM_PARTITIONS: 1
+      
+      
+
     env_file:
       - .env 
 
@@ -66,7 +69,7 @@ services:
       - KAFKA_CLUSTERS_0_NAME=base
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka0:29092
       - KAFKA_CLUSTERS_1_NAME=replica
-      - KAFKA_CLUSTERS_1_BOOTSTRAPSERVERS=kafka1:29092
+      - KAFKA_CLUSTERS_1_BOOTSTRAPSERVERS=kafka1:29093
     
     networks:
       - kafka-spark-mysql
@@ -157,6 +160,8 @@ services:
        - ./pyspark:/opt/spark-apps
     environment:
       - SPARK_LOCAL_IP=spark-master
+      # - SPARK_OPTS='--conf spark.driver.allowMultipleContexts=true'
+      - SPARK_DAEMON_JAVA_OPTS="-Dspark.task.maxFailures=1 -Dspark.executor.instances=1 -Dspark.speculation=true -Dspark.driver.allowMultipleContexts=true -Dspark.dynamicAllocation.enabled=true -Dspark.dynamicAllocation.minExecutors=1 -Dspark.shuffle.service.enabled=true"
 
     depends_on:
       - kafka-ui
@@ -182,6 +187,16 @@ services:
       - SPARK_WORKER_MEMORY=1G
       - SPARK_DRIVER_MEMORY=128m
       - SPARK_EXECUTOR_MEMORY=256m
+      - SPARK_TASK_MAX_FAILURES=1
+      - SPARK_SPECULATION="true"
+      - SPARK_WORKER_INSTANCES=1
+      - SPARK_EXECUTOR_INSTANCES=1
+      - SPARK_DRIVER_ALLOW_MULTIPLE_CONTEXTS="true"
+      - SPARK_DYNAMIC_ALLOCATION_ENABLED="true"
+      - SPARK_DYNAMIC_ALLOCATION_MIN_EXECUTORS=1
+      - SPARK_SHUFFLE_SERVICE_ENABLED="true"
+      - SPARK_WORKER_OPTS="-Dspark.shuffle.service.enabled=true"
+
     volumes:
        - ./pyspark:/opt/spark-apps
       #  - ./data:/opt/spark-data

@@ -8,23 +8,31 @@ import datetime
 
 from kafka import KafkaProducer
 from json import dumps
+from datetime import timedelta
 # from dotenv import load_dotenv
+
+# Lista de brokers disponibles
+brokers = ["kafka0:29092", "kafka1:29093"]
+# brokers = ["localhost:9092", "localhost:9093"]
+
 
 
 
 connecting=True
 print("Start Process")
 while connecting:
-    try:
-        print("Start producer Connection")
-        producer = KafkaProducer(bootstrap_servers=['kafka0:29092'],value_serializer=lambda x: dumps(x).encode('utf-8'))
-        print("Connection realised")
-        connecting=False
-    except Exception as e: 
-        print(e)
-        print("Broker not connected: {}".format(e))
-        connecting=True
-        time.sleep(5)
+   for broker in brokers:
+      try:
+         print("Start producer Connection")
+         producer = KafkaProducer(bootstrap_servers=[broker],value_serializer=lambda x: dumps(x).encode('utf-8'))
+         if producer.bootstrap_connected():
+            print("Conectado al broker: {}".format(broker))
+         connecting=False
+      except Exception as e: 
+         print(e)
+         print("Brokers {} not found: {}".format(broker,e))
+         connecting=True
+         time.sleep(5)
 
 
 print("#############################")
@@ -121,8 +129,9 @@ if __name__ == "__main__":
    main()
 
 
-time_ini = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+time_ini = (datetime.datetime.now()-timedelta(minutes=0)).strftime('%Y-%m-%d %H:%M:%S.%f')
 
+# time_ini = '2023-02-13 08:50:00.0'
 
 while True:
    numcon=getcontainers()
@@ -131,7 +140,7 @@ while True:
    for i in list_ids:
       data = {}
 
-      time_now = datetime.datetime.now() 
+      time_now = (datetime.datetime.now()-timedelta(minutes=0)) 
 
       data["Panel_id"]=str(i)
 
@@ -176,9 +185,11 @@ while True:
 
    probab = int(os.environ['PROBABILIDAD'])
 
+   # probab = 10
+
 
    for item in containers:
-      prob=random.randint(0, 100/probab)
+      prob=random.randint(0, round(100/probab,0))
       if prob == 0:
          # 10% probabilidad de eliminar container
          deletecontainer(item)
@@ -188,7 +199,7 @@ while True:
          list_ids.append(item)
    
          
-   time.sleep(1)
+   time.sleep(2)
 
 
 

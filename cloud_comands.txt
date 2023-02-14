@@ -1,0 +1,54 @@
+## Gcloud command to login into the virtual machine
+gcloud compute ssh --zone "us-central1-a" "dataproject2-onpremise"  --project "deft-epigram-375817"
+
+## Gcloud command to copy folders/files
+gcloud compute scp --recurse --zone "us-central1-a"  ./data-generator/ dataproject2-onpremise:~/DATAPROJECT2_ONPREMISE/data-generator --project "deft-epigram-375817"
+
+
+
+## Steps to install Docker:
+sudo -s
+
+apt update
+apt install --yes apt-transport-https ca-certificates curl gnupg2 software-properties-common
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+apt update
+apt install --yes docker-ce
+
+
+
+## Testing
+docker
+docker info
+
+
+## Next steps:
+
+### 1. Executing the Docker Command without sudo
+exit
+sudo usermod -aG docker $USER
+
+### 2. Installing docker-compose
+curl -L "https://github.com/docker/compose/releases/download/1.28.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+### 3. Check installation
+docker-compose --version
+
+
+
+## STEPS FOR DATA project
+
+Install spark images:
+
+./build-images.ssh
+
+Install data-generator solar-panel images
+
+cd data-generator/solar_panel
+./init.sh
+
+
+Start docker-compose containers:
+
+./start.sh
