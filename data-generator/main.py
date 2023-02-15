@@ -9,7 +9,7 @@ import datetime
 from kafka import KafkaProducer
 from json import dumps
 from datetime import timedelta
-# from dotenv import load_dotenv
+
 
 # List of available Kafka brokers
 brokers = ["kafka0:29092", "kafka1:29093"]
@@ -138,7 +138,7 @@ while True:
 
       time_now = (datetime.datetime.now()-timedelta(minutes=0)) 
 
-      #Each solar panels have to send status=0 once it's offline, along with its ID and timestamp
+      #Each solar panel has to send status=0 once it's offline, along with its ID and timestamp
 
       data["Panel_id"]=str(i)
 
