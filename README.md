@@ -22,7 +22,7 @@ La empresa de placas solares **SolarMinds Technologies [^1]** ha decidido montar
 
 - [Pablo Martínez](https://github.com/Pablomartiver): Economista. Encargado de la parte de Data Engineering relativa a la cola de mensajes en Pub/Sub y Kafka (On premise)
 
-- [Jorge Martínez](https://github.com/joorgemartinez): Licenciado en ADE. Parte del equipo de Data Engineering del proyecto. Desarrollo de código Python para Dataflow y Cloud Functions así como de Spark (On premise)
+- [Jorge Martínez](https://github.com/joorgemartinez): Licenciado en International Business. Parte del equipo de Data Engineering del proyecto. Desarrollo de código Python para Dataflow y Cloud Functions así como de Spark (On premise)
 
 - [Miguel Moratilla](https://github.com/mimove): Doctor en Ing. Aeroespacial. Encargado Senior del proyecto. Responsable de la generación de los datos y la parte DevOps del proyecto. Diseño de la arquitectura, y dirección del proyecto distribuyendo tareas entre los componentes del equipo.
 
@@ -54,6 +54,17 @@ Todo ello se encuentra dentro de un Docker compose. Para ejecutar el docker comp
 
 2. Una vez configurado el archivo de variables de entorno, se puede ejecutar ```docker-compose up -d``` para activar la aplicación.
 
+
+<br>
+
+
+## Diseño de Arquitectura
+
+En la siguiente imagen se puede ver el diseño de arquitectura seguido:
+
+<p align="center">
+<img src=".images/arq_premise.png" width=500px>
+</p>
 
 <br>
 
