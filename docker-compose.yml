@@ -212,6 +212,18 @@ services:
     # env_file:
     #   - .env
 
+
+  app:
+    build: ./flask
+    links:
+      - db
+    ports:
+      - "5000:5000"
+    networks:
+      - kafka-spark-mysql
+
+
+
 volumes:
   grafana-data:
 
