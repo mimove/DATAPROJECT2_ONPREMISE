@@ -8,39 +8,36 @@ global mysql
 
 app = Flask(__name__)
 
-# Configuración de la base de datos MySQL
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_PORT'] = 3308 # o el puerto que utilices en tu base de datos MySQL
+# Configuration of MySQL database
+app.config['MYSQL_HOST'] = 'db'
+app.config['MYSQL_PORT'] = 3306 
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'my_secret_password'
 app.config['MYSQL_DB'] = 'app_db'
 
 
-# connection = pymysql.connect(host="localhost", user="root", passwd="my_secret_password", database="app_db")
-# cursor = connection.cursor()
 
 
-# Inicialización de la extensión MySQL
+# Initializing MySQL read within the Flask app
 mysql = MySQL(app)
 
 
-# Definición de la ruta de la API para obtener los datos
+# Route of the API to get the info of a single panel
 @app.route('/power/<string:panel_id>', methods=['GET'])
 def get_power(panel_id):
-    # Conexión a la base de datos
+    # Connecting to database
     connection = pymysql.connect(host="db", port=3306, user="root", passwd="my_secret_password", database="app_db")
     cur = connection.cursor()
     
-    # Ejecución de la consulta para obtener los datos del panel especificado
+    # Query to obtain the rows of a single panel, filtering by Panel_id
     cur.execute("SELECT Panel_id, power_panel, current_status, time_data FROM panelData WHERE Panel_id = %s", (panel_id,))
     
-    # Obtención de los resultados de la consulta
+    # Getting all the rows of the query
     data = cur.fetchall()
     
-    # Lista para almacenar los resultados
+    # Creation of a list to store all the JSON
     results = []
     
-    # Recorrido de los resultados de la consulta y agregado de cada fila como un diccionario a la lista de resultados
     for row in data:
         result = {}
         result['Panel_id'] = row[0]
@@ -49,10 +46,9 @@ def get_power(panel_id):
         result['time_data'] = row[3].strftime('%Y-%m-%d %H:%M:%S')
         results.append(result)
     
-    # Cierre de la conexión a la base de datos
     cur.close()
     
-    # Devolución de la respuesta en formato JSON con la lista de resultados
+    # Return of the response in JSON format with the list of results.
     return jsonify(results)
 
 

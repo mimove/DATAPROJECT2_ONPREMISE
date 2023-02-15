@@ -10,12 +10,12 @@ from json import dumps
 from datetime import timedelta
 
 
-
+# List of available Kafka brokers
 brokers = ["kafka0:29092", "kafka1:29093"]
 # brokers = ["localhost:9092", "localhost:9093"]
 
 
-
+# Connection to both brokers (looping until both brokers are connected)
 connecting=True
 print("Start Process")
 while connecting:
@@ -34,14 +34,15 @@ while connecting:
 
 
 
-
+#Getting env. variables passed by data-generator main.py
 user_id=os.getenv('USER_ID')
 topic_id=os.getenv('TOPIC_ID')
 time_lapse=int(os.getenv('TIME_ID'))
 time_ini = datetime.datetime.strptime(os.getenv('TIME_NOW'), '%Y-%m-%d %H:%M:%S.%f')
 
-# time_ini = datetime.datetime.now()
 
+# For testing uncomment the following
+# time_ini = datetime.datetime.now()
 # user_id='12345'
 # topic_id='topic_test'
 # time_lapse=2
@@ -54,8 +55,7 @@ def generatedata(maxpow):
 
     data={}
 
-
-
+    # Conversion from hours to seconds and minutes to seconds
     h2sec = 3600
 
     min2sec = 60
@@ -71,7 +71,8 @@ def generatedata(maxpow):
     #######################
 
     delta_min = 0
-
+    
+    #Defining initial time from the variables comming from data-generator/main.py
     initial_time = time_ini.hour * h2sec + time_ini.minute * min2sec
 
     final_time = (time_ini.hour + delta_hour) * h2sec + (time_ini.minute + delta_min) * min2sec
@@ -82,40 +83,31 @@ def generatedata(maxpow):
     time_now= datetime.datetime.now()-timedelta(minutes=0)+timedelta(hours=1)
 
 
-   #  current_minute_seconds = time_now.minute * 60 + time_now.second
-
     current_time_seconds = time_now.hour * h2sec + time_now.minute * min2sec + time_now.second
 
-
-
-    # power_panel = maxpow/(np.cosh((current_minute_seconds-initial_time)*(4/(mean_time-initial_time))-4)**(0.8))*random.uniform(0.98, 1)
-
+    # Equation to calculate the instantaneous power, based on the sech(x), which has a similar shape to that of the normal distribution
     power_panel = maxpow/(np.cosh((current_time_seconds-initial_time)*((delta_hour)*0.5/(mean_time-initial_time))-(delta_hour)*0.5)**(30))
 
+    
+    #Defining information of each solar panel: ID, power, status=1(active) and timestamp
     data["Panel_id"]=user_id
 
     data["power_panel"] = power_panel
 
     data["current_status"] = 1
 
-    # data["time_data"] = time_now.strftime("%d/%m/%Y, %H:%M:%S")
-
     data["time_data"] = str(time_now)
 
-    
     print(data)
-   #  print(time_now)
 
     return data
 
 def senddata(maxpow):
 
-    # Coloca el código para enviar los datos a tu sistema de mensajería
-    # Utiliza la variable topic id para especificar el topico destino
     
     data = generatedata(maxpow)
-   #  print(time_ini)
 
+    # Sending key and data to Kafka. The key in this case is the ID of the panel
     print("Start sending device {} data".format(data["Panel_id"]))
     
     key = str(data["Panel_id"]).encode('utf-8')
@@ -130,9 +122,7 @@ def senddata(maxpow):
 
 
 
-maxpow = 400 * random.uniform(0.8, 1.2)
-
-# maxpow = 400
+maxpow = 400 * random.uniform(0.8, 1.2) # Max. power of each solar panel. It can be from -20% to +20% of 400W
 
 
 while True:

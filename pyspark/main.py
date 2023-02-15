@@ -8,11 +8,9 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, IntegerType, TimestampType
 
 
-
+# This function is used to write the microbatches that Spark needs to work in "streaming" sending information to a DataBase like MySQL
 def foreach_batch_function(df, epoch_id):
-    # global db_target_properties 
-
-
+    # This function is used to write data on table panelData which has the raw data of each panel
     df.write.mode("append")\
         .format("jdbc") \
         .option("driver","com.mysql.cj.jdbc.Driver") \
@@ -24,10 +22,10 @@ def foreach_batch_function(df, epoch_id):
     
     pass
 
+
 def foreach_batch_function_total(df, epoch_id):
-    # global db_target_properties 
-
-
+    # This function is used to write data on table panelDataAgg, which has the aggregate data of all the panels groupedBy ID and calculation the mean value of 
+    # the power in each window
     df.write.mode("append")\
         .format("jdbc") \
         .option("driver","com.mysql.cj.jdbc.Driver") \
@@ -40,7 +38,7 @@ def foreach_batch_function_total(df, epoch_id):
     pass
 
 
-
+# Function to initialize Spark. Some configuration options have been added for increasing the fault tolerance of the system
 def init_spark():
     print("Creating session")
     spark = SparkSession.builder \
@@ -70,13 +68,15 @@ def main():
     StructField("time_data" , TimestampType(), True),
     ])
 
-    # Lista de brokers disponibles
+
+    # List of available Kafka Brokers
     brokers = ["kafka0:29092", "kafka1:29093"]
 
+
+    # Connection to both brokers (looping until both brokers are connected)
     connecting=True
     print("Start Process")
     while connecting:
-        # Bucle para intentar conectarse a cada broker
         for broker in brokers:
             try:
 
@@ -89,7 +89,6 @@ def main():
                                 .select(from_json(col("value").cast("string"), schema).alias("parsed_value")) \
                                 .select(col("parsed_value.*")).na.fill(value=0)
         
-                # Verifica si se pudo conectar al broker actual
                 if stream_detail_df.isStreaming:
                     print("Conectado al broker: {}".format(broker))
                 connecting=False
@@ -99,49 +98,44 @@ def main():
 
 
 
-    df_test = stream_detail_df.select('*')
+    df_test = stream_detail_df.select('*') # Storing the Raw Values of the topic in a DataFrame to print them in the console
     
-    # df.printSchema()
 
-
+    # The following line is used to write the data to the DB. Note how the writeStream method needs to call the method foreachBatch as Spark
+    # streaming works with microbatches.
     query = stream_detail_df.writeStream.outputMode("append").foreachBatch(foreach_batch_function).start()
 
-    # Start running the query that prints the running counts to the console
-    # query = df\
-    #     .writeStream\
-    #     .outputMode('Append')\
-    #     .format('console')\
-    #     .start()
-
+    # Printing raw data in the console
     df_test \
         .writeStream\
         .outputMode('Append')\
         .format('console')\
         .start()
 
-    
-    # Realizar una agregación en batches cada 10 segundos
-    
+    # The following lines of codes are used to obtained tha aggregation of the mean power, grouped by PowerID every 30 seconds
+    # The while loop is used for fault tolerance, so in case a spark-worker stops, the stream of data can be resumed.
     while True:
         try:
             df = stream_detail_df.withColumn("timestamp", stream_detail_df["time_data"])
 
+            # A time watermark is needed by spark to perform the aggregation
             result = df.withWatermark("timestamp", "30 seconds").groupBy(
-                window(df["time_data"], "30 seconds", "30 seconds"), 
+                window(df["time_data"], "30 seconds"), 
                 df["Panel_id"]
             ) \
                 .agg(avg("power_panel")).withColumnRenamed("avg(power_panel)", "total_power")
             
-
+            # The new column window (which is a json of its start and end times), is splitted in two columns, and then it's dropped
             result = result \
                 .withColumn("window_start", col("window").start) \
                 .withColumn("window_end", col("window").end) \
                 .drop(col("window"))                                                                                                                                                                                                                                                                                                     
                                                                                                                                                                                                                                                                                                                                 
-            # result.show(truncate=False)
 
+            # The aggregation data is written in the panelDataAgg table created in MySQL
             query_2 = result.writeStream.outputMode("update").foreachBatch(foreach_batch_function_total).start()
 
+            # The result of the aggregation is printed on the console for checking purpouses
             result.writeStream \
                 .outputMode("update") \
                 .format("console") \
