@@ -107,7 +107,7 @@ def main():
    containername = os.environ['IMAGE']
    topicname = os.environ['TOPIC']
 
-   # topcontainers = 5
+   # topcontainers = 1
    # elapsedtime = 5
    # containername="solar_gen_premise"
    # topicname = "panelInfo"
@@ -130,6 +130,8 @@ if __name__ == "__main__":
 
 
 time_ini = (datetime.datetime.now()-timedelta(minutes=0)).strftime('%Y-%m-%d %H:%M:%S.%f')
+
+# print(time_ini)
 
 # time_ini = '2023-02-13 08:50:00.0'
 
